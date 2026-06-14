@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalaLMur — Прокат свадебных платьев</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="container header__inner">
+        <a href="/" class="logo">GalaLMur</a>
+        <nav class="header__nav">
+            <div class="nav-dropdown">
+                <a href="#" class="nav-link">Женское ▾</a>
+                <div class="nav-dropdown-menu">
+                    <a href="#" onclick="filterCategory('wedding')">Свадебные платья</a>
+                    <a href="#" onclick="filterCategory('evening')">Вечерние платья</a>
+                </div>
+            </div>
+            <div class="nav-dropdown">
+                <a href="#" class="nav-link">Мужское ▾</a>
+                <div class="nav-dropdown-menu">
+                    <a href="#" onclick="filterCategory('suit')">Костюмы</a>
+                </div>
+            </div>
+            <a href="#" class="nav-link" onclick="filterCategory('all')">Все категории</a>
+            <a href="#" class="nav-link cart-link" id="cartLink" title="Корзина">🛒 <span class="cart-count" id="cartCount">0</span></a>
+            <a href="#" class="nav-link" id="authBtn" onclick="openAuthModal()">Войти</a>
+            <div class="user-menu" id="userMenu" style="display:none;">
+                <span class="user-menu-trigger" id="userGreeting"></span>
+                <div class="user-dropdown">
+                    <a href="cabinet.html">Мой кабинет</a>
+                    <a href="admin.html" id="adminLink" style="display:none;">Админ-панель</a>
+                    <a href="#" onclick="logout()">Выйти</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+
+    <!-- ОСНОВНАЯ ЧАСТЬ -->
+    <main class="main">
+        <div class="container main__grid">
+            <!-- Сайдбар -->
+            <aside class="sidebar" style="padding:15px;">
+                <h3 class="sidebar__title" style="margin-bottom:10px;">Размер</h3>
+                <div class="filter-group" style="margin-bottom:0;">
+                    <label class="filter-option" style="padding:2px 0;"><input type="checkbox" class="size-filter" value="S" onchange="applySizeFilter()"> S (44)</label>
+                    <label class="filter-option" style="padding:2px 0;"><input type="checkbox" class="size-filter" value="M" onchange="applySizeFilter()"> M (48)</label>
+                    <label class="filter-option" style="padding:2px 0;"><input type="checkbox" class="size-filter" value="L" onchange="applySizeFilter()"> L (50)</label>
+                    <label class="filter-option" style="padding:2px 0;"><input type="checkbox" class="size-filter" value="XL" onchange="applySizeFilter()"> XL (52)</label>
+                </div>
+            </aside>
+
+            <!-- Каталог -->
+            <section class="catalog">
+                <div class="catalog__grid" id="dressesGrid"></div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Модалка бронирования -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal">
+            <div class="modal__header"><h3 class="modal__title">Бронирование платья</h3><button class="modal__close" id="closeBookingModal">&times;</button></div>
+            <div class="modal__body">
+                <p class="modal__dress-name" id="modalDressName"></p>
+                <div class="form-group"><label class="form-label">Размер</label><select id="bookingSize" class="form-select"><option value="S">S (44)</option><option value="M">M (48)</option><option value="L">L (50)</option><option value="XL">XL (52)</option></select></div>
+                <div class="form-group"><label class="form-label">Дата начала аренды</label><input type="date" id="dateStart" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Дата окончания аренды</label><input type="date" id="dateEnd" class="form-input"></div>
+                <div class="form-group" id="priceCalc" style="display: none;"><p class="calc-text">Количество дней: <strong id="calcDays">0</strong><br>Стоимость: <strong id="calcTotal">0 ₽</strong></p></div>
+                <button class="btn-confirm" id="confirmBooking">Подтвердить бронирование</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка авторизации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal">
+            <div class="modal__header"><h3 class="modal__title">Вход</h3><button class="modal__close" onclick="closeAuthModal()">&times;</button></div>
+            <div class="modal__body">
+                <div style="display:flex;gap:10px;margin-bottom:20px;">
+                    <button class="show-all-btn" style="flex:1;" id="tabLoginBtn" onclick="switchTab('login')">Вход</button>
+                    <button class="show-all-btn" style="flex:1;background:#A08060;" id="tabRegisterBtn" onclick="switchTab('register')">Регистрация</button>
+                </div>
+                <div id="form-login">
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" id="loginEmail" class="form-input" placeholder="email@example.com"></div>
+                    <div class="form-group"><label class="form-label">Пароль</label><input type="password" id="loginPassword" class="form-input" placeholder="Введите пароль"></div>
+                    <button class="btn-confirm" onclick="login()">Войти</button>
+                </div>
+                <div id="form-register" style="display:none;">
+                    <div class="form-group"><label class="form-label">ФИО *</label><input type="text" id="regName" class="form-input" placeholder="Иванова Анна"></div>
+                    <div class="form-group"><label class="form-label">Email *</label><input type="email" id="regEmail" class="form-input" placeholder="email@example.com"></div>
+                    <div class="form-group"><label class="form-label">Телефон</label><input type="tel" id="regPhone" class="form-input" placeholder="+7 999 123-45-67"></div>
+                    <div class="form-group"><label class="form-label">Пароль *</label><input type="password" id="regPassword" class="form-input" placeholder="Придумайте пароль"></div>
+                    <button class="btn-confirm" onclick="register()">Зарегистрироваться</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка корзины -->
+    <div class="modal-overlay" id="cartModal">
+        <div class="modal" style="max-width:800px;">
+            <div class="modal__header"><h3 class="modal__title">Мои бронирования</h3><button class="modal__close" onclick="closeCartModal()">&times;</button></div>
+            <div class="modal__body">
+                <div id="cartEmpty" style="display:none;text-align:center;padding:40px;color:#8B6B4A;font-size:16px;">У вас пока нет бронирований</div>
+                <div id="cartContent"><table class="cart-table"><thead><tr><th>Платье</th><th>Размер</th><th>С</th><th>По</th><th>Дней</th><th>Сумма</th><th></th></tr></thead><tbody id="cartBody"></tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка оплаты -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal" style="max-width:450px;text-align:center;">
+            <div class="modal__header"><h3 class="modal__title">Оплата бронирования</h3><button class="modal__close" onclick="closePaymentModal()">&times;</button></div>
+            <div class="modal__body">
+                <p id="paymentDress" style="font-weight:600;margin-bottom:10px;"></p>
+                <p style="font-size:13px;color:#666;" id="paymentDetails"></p>
+                <div style="background:#f9f7f4;border-radius:12px;padding:20px;margin:15px 0;">
+                    <p style="font-weight:700;color:#8B6B4A;">Сумма к оплате:</p>
+                    <p style="font-size:28px;font-weight:700;color:#3C2A1E;" id="paymentTotal"></p>
+                    <p style="font-size:12px;color:#999;">В том числе комиссия платформы (15%): <span id="paymentCommission"></span></p>
+                </div>
+                <div style="background:#fff;border:2px dashed #DDD0C0;border-radius:12px;padding:20px;margin:15px 0;">
+                    <div id="qrPlaceholder"><p style="font-size:13px;color:#999;">Загрузка QR-кода...</p></div>
+                    <img id="qrImage" src="" alt="QR-код оплаты" style="display:none;max-width:250px;margin:0 auto;">
+                    <p style="font-size:11px;color:#ccc;margin-top:8px;">Отсканируйте для оплаты</p>
+                </div>
+                <button class="btn-confirm" id="payBtn" onclick="confirmPayment()">Подтвердить оплату</button>
+                <p style="font-size:11px;color:#999;margin-top:8px;">Нажимая кнопку, вы подтверждаете оплату бронирования</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка добавления наряда -->
+    <div class="modal-overlay" id="addDressModal" style="display:none;">
+        <div class="modal" style="max-width:550px;">
+            <div class="modal__header"><h3 class="modal__title">Добавить наряд</h3><button class="modal__close" onclick="closeAddDressModal()">&times;</button></div>
+            <div class="modal__body">
+                <div class="form-group"><label class="form-label">Название *</label><input type="text" id="dressTitle" class="form-input" placeholder="Свадебное платье «Мечта»"></div>
+                <div class="form-group"><label class="form-label">Описание *</label><textarea id="dressDesc" class="form-input" rows="2" placeholder="Опишите наряд..."></textarea></div>
+                <div class="form-group"><label class="form-label">Цена за день (₽) *</label><input type="number" id="dressPrice" class="form-input" placeholder="15000"></div>
+                <div class="form-group"><label class="form-label">Категория</label><select id="dressCategory" class="form-select"><option value="wedding">Свадебное платье</option><option value="evening">Вечернее платье</option><option value="suit">Мужской костюм</option><option value="accessories">Аксессуары</option></select></div>
+                <div class="form-group"><label class="form-label">Доступные размеры *</label><div style="display:flex;gap:10px;flex-wrap:wrap;"><label class="filter-option"><input type="checkbox" class="dress-size" value="S"> S (44)</label><label class="filter-option"><input type="checkbox" class="dress-size" value="M"> M (48)</label><label class="filter-option"><input type="checkbox" class="dress-size" value="L"> L (50)</label><label class="filter-option"><input type="checkbox" class="dress-size" value="XL"> XL (52)</label></div></div>
+                <div class="form-group"><label class="form-label">Фото</label><input type="file" id="dressImage" class="form-input" accept="image/*"></div>
+                <button class="btn-confirm" onclick="addDress()">Добавить наряд</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка О нас -->
+    <div class="modal-overlay" id="aboutModal" style="display:none;"><div class="modal" style="max-width:600px;"><div class="modal__header"><h3 class="modal__title">О компании GalaLMur</h3><button class="modal__close" onclick="closeAboutModal()">&times;</button></div><div class="modal__body"><p style="margin-bottom:15px;line-height:1.6;"><strong>GalaLMur</strong> - это онлайн-платформа для аренды свадебных и вечерних нарядов.</p></div></div></div>
+
+<!-- ПОДВАЛ -->
+<footer class="footer">
+    <div class="container footer__grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="footer__col">
+            <h4>Компания</h4>
+            <ul>
+                <li><a href="#" onclick="openAboutModal()">О нас</a></li>
+                <li><a href="cabinet.html">Мой кабинет</a></li>
+                <li><a href="#" onclick="openContactsModal()">Контакты</a></li>
+                <li><a href="#" onclick="openPrivacyModal()">Политика конфиденциальности</a></li>
+            </ul>
+        </div>
+        <div class="footer__col">
+            <h4>Сотрудничество</h4>
+            <ul>
+                <li><a href="#" onclick="openContractsModal()">Договоры о сотрудничестве</a></li>
+                <li><a href="#" onclick="openLicensesModal()">Лицензии партнёров</a></li>
+                <li><a href="#" onclick="openBecomePartnerModal()">Стать партнёром</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="container" style="margin-top:30px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.2);text-align:center;font-size:13px;color:rgba(255,255,255,0.7);">
+        <p>GalaLMur © 2026 — Онлайн-платформа для аренды свадебных и вечерних нарядов</p>
+    </div>
+</footer>
+
+    <div class="toast-backdrop" id="toastBackdrop"></div>
+    <div class="toast-overlay" id="toastOverlay">
+        <div class="toast" id="toast"><div class="toast__icon-wrap" id="toastIcon"></div><div class="toast__divider"></div><div class="toast__message" id="toastMessage"></div><button class="toast__close" id="toastClose">Понятно</button></div>
+    </div>
+
+    <script src="js/main.js"></script>
+
+<!-- Модалка Контакты -->
+<div class="modal-overlay" id="contactsModal" style="display:none;">
+    <div class="modal" style="max-width:500px;">
+        <div class="modal__header"><h3 class="modal__title">Контакты</h3><button class="modal__close" onclick="closeContactsModal()">&times;</button></div>
+        <div class="modal__body">
+            <p style="font-size:16px;font-weight:600;margin-bottom:5px;">GalaLMur</p>
+            <p style="color:#666;line-height:1.8;">
+                📍 г. Москва, ул. Примерная, д. 123<br>
+                📞 +7 (999) 123-45-67<br>
+                📧 info@galalmur.ru<br>
+                🕐 Ежедневно с 10:00 до 21:00
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка Политика конфиденциальности -->
+<div class="modal-overlay" id="privacyModal" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal__header"><h3 class="modal__title">Политика конфиденциальности</h3><button class="modal__close" onclick="closePrivacyModal()">&times;</button></div>
+        <div class="modal__body">
+            <p style="margin-bottom:10px;">Мы уважаем вашу конфиденциальность и обязуемся защищать ваши персональные данные.</p>
+            <p style="margin-bottom:10px;">Все данные, предоставленные при регистрации (ФИО, email, телефон), используются исключительно для работы платформы и не передаются третьим лицам.</p>
+            <p style="margin-bottom:10px;">Пароли хранятся в зашифрованном виде (bcrypt). Платёжные данные не сохраняются на наших серверах.</p>
+            <p>По всем вопросам обращайтесь: info@galalmur.ru</p>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка Договоры -->
+<div class="modal-overlay" id="contractsModal" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal__header"><h3 class="modal__title">Договоры о сотрудничестве</h3><button class="modal__close" onclick="closeContractsModal()">&times;</button></div>
+        <div class="modal__body">
+            <p style="margin-bottom:10px;">Мы предлагаем гибкие условия сотрудничества для владельцев свадебных и вечерних нарядов.</p>
+            <p style="margin-bottom:10px;"><strong>Основные условия:</strong></p>
+            <ul style="padding-left:20px;line-height:1.8;">
+                <li>Комиссия платформы — 15% от суммы сделки</li>
+                <li>Выплаты производятся еженедельно</li>
+                <li>Размещение нарядов — бесплатно</li>
+                <li>Поддержка 24/7</li>
+            </ul>
+            <p>Для заключения договора свяжитесь с нами.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка Лицензии -->
+<div class="modal-overlay" id="licensesModal" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal__header"><h3 class="modal__title">Лицензии партнёров</h3><button class="modal__close" onclick="closeLicensesModal()">&times;</button></div>
+        <div class="modal__body">
+            <p style="margin-bottom:10px;">Все партнёры платформы GalaLMur проходят верификацию.</p>
+            <p style="margin-bottom:10px;"><strong>Требования к партнёрам:</strong></p>
+            <ul style="padding-left:20px;line-height:1.8;">
+                <li>Подтверждение личности</li>
+                <li>Качественные фото нарядов</li>
+                <li>Соблюдение условий аренды</li>
+                <li>Своевременная обработка заказов</li>
+            </ul>
+            <p>Каждый партнёр получает лицензию на размещение товаров на платформе.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка Стать партнёром -->
+<div class="modal-overlay" id="becomePartnerModal" style="display:none;">
+    <div class="modal" style="max-width:500px;">
+        <div class="modal__header"><h3 class="modal__title">Стать партнёром</h3><button class="modal__close" onclick="closeBecomePartnerModal()">&times;</button></div>
+        <div class="modal__body">
+            <p style="margin-bottom:15px;">Заполните форму и мы свяжемся с вами для обсуждения условий сотрудничества.</p>
+            <input type="text" id="partnerName" class="form-input" placeholder="Ваше имя" style="margin-bottom:8px;">
+            <input type="email" id="partnerEmail" class="form-input" placeholder="Ваш email" style="margin-bottom:8px;">
+            <input type="tel" id="partnerPhone" class="form-input" placeholder="Телефон" style="margin-bottom:8px;">
+            <textarea id="partnerMessage" class="form-input" rows="2" placeholder="Кратко о вас..." style="resize:vertical;margin-bottom:8px;"></textarea>
+            <button class="btn-confirm" onclick="sendPartnerRequest()">Отправить заявку</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
